@@ -1,5 +1,6 @@
 .App {
   text-align: center;
+  color: #333;
 }
 
 .App-logo {
@@ -25,7 +26,7 @@
 }
 
 .App-link {
-  color: #61dafb;
+  color: #2563eb;
 }
 
 @keyframes App-logo-spin {
@@ -35,4 +36,34 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/* 覆盖可能的错误样式 */
+* {
+  color: inherit;
+}
+
+html, body {
+  color: #333;
+}
+
+/* 确保正确使用Tailwind类 */
+.text-red-500 {
+  color: #ef4444 !important;
+}
+
+.text-black {
+  color: #000 !important;
+}
+
+.text-white {
+  color: #fff !important;
+}
+
+.text-blue-600 {
+  color: #2563eb !important;
+}
+
+.bg-white {
+  background-color: #fff !important;
 }
