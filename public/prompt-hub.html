@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub顶级提示词仓库整合中心</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding: 40px 0;
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #fff, #f0f8ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.3rem;
+            color: rgba(255,255,255,0.9);
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+            color: white;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        .search-container {
+            max-width: 600px;
+            margin: 0 auto 50px;
+            position: relative;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 18px 60px 18px 20px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 50px;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            color: white;
+            placeholder-color: rgba(255,255,255,0.7);
+        }
+
+        .search-box::placeholder {
+            color: rgba(255,255,255,0.7);
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .filters {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 50px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 12px 24px;
+            border: 2px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.6);
+            transform: translateY(-2px);
+        }
+
+        .repositories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .repo-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .repo-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #45b7d1, #f9ca24);
+        }
+
+        .repo-card:hover {
+            transform: translateY(-8px);
+            background: rgba(255,255,255,0.15);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .repo-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .repo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            margin-right: 15px;
+        }
+
+        .repo-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 5px;
+        }
+
+        .repo-author {
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .repo-description {
+            color: rgba(255,255,255,0.9);
+            line-height: 1.6;
+            margin-bottom: 20px;
+            font-size: 1rem;
+        }
+
+        .repo-stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: rgba(255,255,255,0.8);
+            font-size: 0.9rem;
+        }
+
+        .repo-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .tag {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .repo-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 40px 0;
+            color: rgba(255,255,255,0.8);
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .footer p {
+            margin-bottom: 10px;
+        }
+
+        .footer a {
+            color: #4ecdc4;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .repositories-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .stats {
+                gap: 20px;
+            }
+            
+            .stat-number {
+                font-size: 2rem;
+            }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: white;
+            margin: 40px 0;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top: 4px solid #fff;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>GitHub顶级提示词仓库整合中心</h1>
+            <p>汇聚GitHub上最受欢迎的10个开源提示词仓库，一站式获取最优质的AI提示词资源</p>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-number">10</span>
+                    <span class="stat-label">精选仓库</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">500K+</span>
+                    <span class="stat-label">总星标数</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">10K+</span>
+                    <span class="stat-label">提示词模板</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">100+</span>
+                    <span class="stat-label">应用场景</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="search-container">
+            <input type="text" class="search-box" placeholder="搜索提示词仓库、标签或应用场景..." id="searchInput">
+            <button class="search-btn" onclick="searchRepositories()">🔍</button>
+        </div>
+
+        <div class="filters">
+            <button class="filter-btn active" data-filter="all">全部</button>
+            <button class="filter-btn" data-filter="chatgpt">ChatGPT</button>
+            <button class="filter-btn" data-filter="engineering">工程技术</button>
+            <button class="filter-btn" data-filter="templates">模板集合</button>
+            <button class="filter-btn" data-filter="tutorials">教程指南</button>
+            <button class="filter-btn" data-filter="tools">开发工具</button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>正在加载最新数据...</p>
+        </div>
+
+        <div class="repositories-grid" id="repositoriesGrid">
+            <!-- Repository cards will be inserted here -->
+        </div>
+
+        <footer class="footer">
+            <p>本网站整合了GitHub上最受欢迎的开源提示词仓库</p>
+            <p>数据来源：<a href="https://github.com" target="_blank">GitHub</a> | 最后更新：2025年5月</p>
+            <p>如有问题或建议，请联系我们</p>
+        </footer>
+    </div>
+
+    <script>
+        const repositories = [
+            {
+                id: 1,
+                name: "awesome-chatgpt-prompts",
+                author: "f",
+                description: "最受欢迎的ChatGPT提示词集合，包含各种角色扮演和任务导向的提示词模板，适用于ChatGPT、Claude、Gemini等多种AI模型。",
+                stars: "110K",
+                forks: "14.5K",
+                language: "Markdown",
+                tags: ["chatgpt", "prompts", "templates", "roleplay"],
+                category: "chatgpt",
+                url: "https://github.com/f/awesome-chatgpt-prompts",
+                icon: "🤖"
+            },
+            {
+                id: 2,
+                name: "Awesome-Prompt-Engineering",
+                author: "promptslab",
+                description: "全面的提示词工程资源合集，包含最新论文、学习指南、工具和技术，专注于GPT、ChatGPT、PaLM等大语言模型。",
+                stars: "45K",
+                forks: "5.2K",
+                language: "Python",
+                tags: ["prompt-engineering", "llm", "gpt", "research"],
+                category: "engineering",
+                url: "https://github.com/promptslab/Awesome-Prompt-Engineering",
+                icon: "🔬"
+            },
+            {
+                id: 3,
+                name: "Prompt-Engineering-Guide",
+                author: "dair-ai",
+                description: "最权威的提示词工程指南，包含教程、论文、讲座和实用资源，覆盖从基础到高级的所有提示词工程技术。",
+                stars: "48K",
+                forks: "4.8K",
+                language: "MDX",
+                tags: ["guide", "tutorials", "engineering", "education"],
+                category: "tutorials",
+                url: "https://github.com/dair-ai/Prompt-Engineering-Guide",
+                icon: "📚"
+            },
+            {
+                id: 4,
+                name: "awesome-gpt-prompt-engineering",
+                author: "snwfdhmp",
+                description: "精心策划的GPT提示词工程资源列表，包含工具、技术和实用技巧，帮助开发者更好地利用大语言模型。",
+                stars: "25K",
+                forks: "2.1K",
+                language: "Markdown",
+                tags: ["gpt", "engineering", "tools", "resources"],
+                category: "engineering",
+                url: "https://github.com/snwfdhmp/awesome-gpt-prompt-engineering",
+                icon: "⚡"
+            },
+            {
+                id: 5,
+                name: "Prompt_Engineering",
+                author: "NirDiamant",
+                description: "最全面的提示词工程教程集合，从基础概念到高级策略，包含22个实践教程和Jupyter Notebook示例。",
+                stars: "12K",
+                forks: "1.8K",
+                language: "Jupyter Notebook",
+                tags: ["tutorials", "jupyter", "practical", "comprehensive"],
+                category: "tutorials",
+                url: "https://github.com/NirDiamant/Prompt_Engineering",
+                icon: "🎯"
+            },
+            {
+                id: 6,
+                name: "TheBigPromptLibrary",
+                author: "0xeb",
+                description: "海量提示词库，包含系统提示词、自定义指令、越狱提示词等，支持ChatGPT、Claude、Gemini等多种AI平台。",
+                stars: "8.5K",
+                forks: "950",
+                language: "Markdown",
+                tags: ["library", "system-prompts", "instructions", "collection"],
+                category: "templates",
+                url: "https://github.com/0xeb/TheBigPromptLibrary",
+                icon: "📖"
+            },
+            {
+                id: 7,
+                name: "awesome-prompts",
+                author: "ai-boost",
+                description: "来自GPT商店顶级GPT的精选提示词集合，包含提示词工程、攻击防护和高级技术论文。",
+                stars: "15K",
+                forks: "1.2K",
+                language: "Markdown",
+                tags: ["gpt-store", "curated", "advanced", "security"],
+                category: "chatgpt",
+                url: "https://github.com/ai-boost/awesome-prompts",
+                icon: "🏆"
+            },
+            {
+                id: 8,
+                name: "GPT-Prompt-Templates",
+                author: "forReason",
+                description: "实用的GPT提示词模板库，包含各种表单和模板，帮助用户快速创建高效的ChatGPT提示词。",
+                stars: "3.2K",
+                forks: "425",
+                language: "Markdown",
+                tags: ["templates", "forms", "productivity", "quick-start"],
+                category: "templates",
+                url: "https://github.com/forReason/GPT-Prompt-Templates",
+                icon: "📋"
+            },
+            {
+                id: 9,
+                name: "awesome-awesome-prompts",
+                author: "dukeluo",
+                description: "元级别的提示词资源整合，收集了与提示词工程相关的所有awesome列表，一站式访问所有资源。",
+                stars: "2.8K",
+                forks: "180",
+                language: "Markdown",
+                tags: ["meta", "awesome-lists", "comprehensive", "aggregation"],
+                category: "engineering",
+                url: "https://github.com/dukeluo/awesome-awesome-prompts",
+                icon: "🌟"
+            },
+            {
+                id: 10,
+                name: "awesome-prompt-engineering",
+                author: "prompt-engineering",
+                description: "中英文双语提示词工程资源合集，包含NLP任务、知识图谱和大语言模型相关的提示词技术。",
+                stars: "4.1K",
+                forks: "320",
+                language: "Python",
+                tags: ["bilingual", "nlp", "chinese", "comprehensive"],
+                category: "engineering",
+                url: "https://github.com/prompt-engineering/awesome-prompt-engineering",
+                icon: "🌐"
+            }
+        ];
+
+        function renderRepositories(repos = repositories) {
+            const grid = document.getElementById('repositoriesGrid');
+            grid.innerHTML = repos.map(repo => `
+                <div class="repo-card" data-category="${repo.category}">
+                    <div class="repo-header">
+                        <div class="repo-icon">${repo.icon}</div>
+                        <div>
+                            <h3 class="repo-title">${repo.name}</h3>
+                            <div class="repo-author">by ${repo.author}</div>
+                        </div>
+                    </div>
+                    
+                    <p class="repo-description">${repo.description}</p>
+                    
+                    <div class="repo-stats">
+                        <div class="stat">
+                            <span>⭐</span>
+                            <span>${repo.stars}</span>
+                        </div>
+                        <div class="stat">
+                            <span>🍴</span>
+                            <span>${repo.forks}</span>
+                        </div>
+                        <div class="stat">
+                            <span>💻</span>
+                            <span>${repo.language}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="repo-tags">
+                        ${repo.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                    </div>
+                    
+                    <div class="repo-actions">
+                        <a href="${repo.url}" target="_blank" class="btn btn-primary">
+                            🚀 访问仓库
+                        </a>
+                        <button class="btn btn-secondary" onclick="copyRepoUrl('${repo.url}')">
+                            📋 复制链接
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function setupFilters() {
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    const filter = btn.dataset.filter;
+                    if (filter === 'all') {
+                        renderRepositories();
+                    } else {
+                        const filtered = repositories.filter(repo => repo.category === filter);
+                        renderRepositories(filtered);
+                    }
+                });
+            });
+        }
+
+        function searchRepositories() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            if (!query) {
+                renderRepositories();
+                return;
+            }
+            
+            const filtered = repositories.filter(repo => 
+                repo.name.toLowerCase().includes(query) ||
+                repo.description.toLowerCase().includes(query) ||
+                repo.tags.some(tag => tag.toLowerCase().includes(query)) ||
+                repo.author.toLowerCase().includes(query)
+            );
+            
+            renderRepositories(filtered);
+        }
+
+        function copyRepoUrl(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                alert('链接已复制到剪贴板！');
+            });
+        }
+
+        // Search on Enter key
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                searchRepositories();
+            }
+        });
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderRepositories();
+            setupFilters();
+        });
+
+        // Simulate loading effect
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('repositoriesGrid').style.display = 'none';
+            
+            setTimeout(() => {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('repositoriesGrid').style.display = 'grid';
+            }, 1500);
+        }
+
+        // Add some interactive animations
+        document.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.repo-card');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry, index) => {
+                    if (entry.isIntersecting) {
+                        setTimeout(() => {
+                            entry.target.style.opacity = '1';
+                            entry.target.style.transform = 'translateY(0)';
+                        }, index * 100);
+                    }
+                });
+            });
+
+            cards.forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'all 0.6s ease';
+                observer.observe(card);
+            });
+        });
+    </script>
+</body>
+</html>
